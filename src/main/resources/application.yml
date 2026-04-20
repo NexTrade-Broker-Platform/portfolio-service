@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: portfolio-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/db_portfolio
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    open-in-view: false
+  flyway:
+    enabled: true
+
+server:
+  port: 8083
