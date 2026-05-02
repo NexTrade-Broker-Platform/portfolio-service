@@ -23,6 +23,9 @@ public class PortfolioController {
     @GetMapping
     public ResponseEntity<List<HoldingResponse>> getHoldings(
             @RequestHeader("X-User-Id") UUID userId) {
+        for (HoldingResponse holding : portfolioService.getHoldings(userId)) {
+            System.out.println("Holding with price=" + holding.getAverageCost() + " sent...");
+        }
         return ResponseEntity.ok(portfolioService.getHoldings(userId));
     }
 
@@ -38,6 +41,7 @@ public class PortfolioController {
     @PostMapping("/add")
     public ResponseEntity<Void> addPosition(
             @Valid @RequestBody AddPositionRequest request) {
+        System.out.println("Portfolio-service received the order with price=" + request.getPrice());
         portfolioService.addPosition(request);
         return ResponseEntity.ok().build();
     }

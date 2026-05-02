@@ -117,6 +117,7 @@ public class PortfolioService {
                 .reservedQuantity(BigDecimal.ZERO)
                 .averageCost(request.getPrice())
                 .build();
+        System.out.println("Creating new position: " + position);
         positionRepository.save(position);
     }
 

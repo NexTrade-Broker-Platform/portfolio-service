@@ -21,7 +21,11 @@ public class AddPositionRequest {
     private String instrumentType;
 
     @NotNull(message = "Quantity is required")
-    @Positive(message = "Quantity must be strictly greater than 0")
+    //@Positive(message = "Quantity must be strictly greater than 0")
+    // I commented this and the line above bc I want to use this dto for creation and updates:
+    // if the position doesn't exist we create it
+    // if it exists we update the position
+    // before it didn't allow selling
     private BigDecimal quantity;
 
     @NotNull(message = "Price is required")
