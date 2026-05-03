@@ -15,3 +15,6 @@ spring:
 
 server:
   port: 8083
+
+internal:
+  api-key: secret123
