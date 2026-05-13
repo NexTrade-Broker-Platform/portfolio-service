@@ -57,7 +57,7 @@ class PortfolioServiceTest {
 
     @Test
     void getHoldings_shouldReturnListOfHoldings() {
-        when(positionRepository.findAllByUserId(userId)).thenReturn(List.of(position));
+        when(positionRepository.findAllByUserIdAndIsActiveTrue(userId)).thenReturn(List.of(position));
 
         List<HoldingResponse> holdings = portfolioService.getHoldings(userId);
 
@@ -69,7 +69,7 @@ class PortfolioServiceTest {
 
     @Test
     void getHoldings_shouldReturnEmptyListWhenNoPositions() {
-        when(positionRepository.findAllByUserId(userId)).thenReturn(List.of());
+        when(positionRepository.findAllByUserIdAndIsActiveTrue(userId)).thenReturn(List.of());
 
         List<HoldingResponse> holdings = portfolioService.getHoldings(userId);
 
@@ -94,6 +94,18 @@ class PortfolioServiceTest {
     void getPosition_shouldThrowPositionNotFoundException() {
         when(positionRepository.findByUserIdAndInstrumentId(userId, "AAPL"))
                 .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> portfolioService.getPosition(userId, "AAPL"))
+                .isInstanceOf(PositionNotFoundException.class);
+    }
+
+    @Test
+    void getPosition_shouldThrowPositionNotFoundExceptionWhenInactive() {
+        position.setActive(false);
+        position.setQuantity(BigDecimal.ZERO);
+
+        when(positionRepository.findByUserIdAndInstrumentId(userId, "AAPL"))
+                .thenReturn(Optional.of(position));
 
         assertThatThrownBy(() -> portfolioService.getPosition(userId, "AAPL"))
                 .isInstanceOf(PositionNotFoundException.class);

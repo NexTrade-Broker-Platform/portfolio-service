@@ -11,7 +11,7 @@ import java.util.UUID;
 @Repository
 public interface PositionRepository extends JpaRepository<Position, UUID> {
 
-    List<Position> findAllByUserId(UUID userId);
+    List<Position> findAllByUserIdAndIsActiveTrue(UUID userId);
 
     Optional<Position> findByUserIdAndInstrumentId(UUID userId, String instrumentId);
 

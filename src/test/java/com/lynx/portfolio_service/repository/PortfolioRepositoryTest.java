@@ -97,7 +97,7 @@ class PositionRepositoryTest {
     }
 
     @Test
-    void findAllByUserId_shouldReturnAllPositionsForUser() {
+    void findAllByUserIdAndIsActiveTrue_shouldReturnOnlyActivePositions() {
         Position stock = Position.builder()
                 .userId(userId)
                 .instrumentId("AAPL")
@@ -116,10 +116,22 @@ class PositionRepositoryTest {
                 .averageCost(new BigDecimal("5.20"))
                 .build();
 
+        Position inactive = Position.builder()
+                .userId(userId)
+                .instrumentId("MSFT")
+                .instrumentType("STOCK")
+                .quantity(BigDecimal.ZERO)
+                .reservedQuantity(BigDecimal.ZERO)
+                .averageCost(new BigDecimal("300.00"))
+                .build();
+
         positionRepository.save(stock);
         positionRepository.save(option);
+        Position savedInactive = positionRepository.save(inactive);
+        savedInactive.setActive(false);
+        positionRepository.save(savedInactive);
 
-        List<Position> positions = positionRepository.findAllByUserId(userId);
+        List<Position> positions = positionRepository.findAllByUserIdAndIsActiveTrue(userId);
 
         assertThat(positions).hasSize(2);
         assertThat(positions).extracting(Position::getInstrumentId)

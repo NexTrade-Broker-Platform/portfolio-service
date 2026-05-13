@@ -25,15 +25,18 @@ public class PortfolioService {
     // ─── User-facing operations ───────────────────────────────────────────────
 
     public List<HoldingResponse> getHoldings(UUID userId) {
-        return positionRepository.findAllByUserId(userId)
+        return positionRepository.findAllByUserIdAndIsActiveTrue(userId)
                 .stream()
-                .filter(Position::isActive)
                 .map(this::toHoldingResponse)
                 .collect(Collectors.toList());
     }
 
     public PositionResponse getPosition(UUID userId, String instrumentId) {
         Position position = findPositionOrThrow(userId, instrumentId);
+        if (!position.isActive()) {
+            throw new PositionNotFoundException(
+                    "Position not found for user " + userId + " and instrument " + instrumentId);
+        }
         return toPositionResponse(position);
     }
 
