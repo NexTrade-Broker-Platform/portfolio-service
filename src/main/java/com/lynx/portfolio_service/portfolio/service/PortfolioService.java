@@ -3,8 +3,10 @@ package com.lynx.portfolio_service.portfolio.service;
 import com.lynx.portfolio_service.portfolio.dto.request.*;
 import com.lynx.portfolio_service.portfolio.dto.response.*;
 import com.lynx.portfolio_service.portfolio.entity.Position;
+import com.lynx.portfolio_service.portfolio.entity.PositionEvent;
 import com.lynx.portfolio_service.portfolio.exception.InsufficientQuantityException;
 import com.lynx.portfolio_service.portfolio.exception.PositionNotFoundException;
+import com.lynx.portfolio_service.portfolio.repository.PositionEventRepository;
 import com.lynx.portfolio_service.portfolio.repository.PositionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ import java.util.stream.Collectors;
 public class PortfolioService {
 
     private final PositionRepository positionRepository;
+    private final PositionEventRepository positionEventRepository;
 
     // ─── User-facing operations ───────────────────────────────────────────────
 
@@ -49,6 +52,15 @@ public class PortfolioService {
                         existing -> updateExistingPosition(existing, request.getQuantity(), request.getPrice()),
                         () -> createNewPosition(request)
                 );
+
+        positionEventRepository.save(PositionEvent.builder()
+                .userId(request.getUserId())
+                .instrumentId(request.getInstrumentId())
+                .instrumentType(request.getInstrumentType())
+                .side("BUY")
+                .quantity(request.getQuantity())
+                .price(request.getPrice())
+                .build());
     }
 
     @Transactional
@@ -95,6 +107,25 @@ public class PortfolioService {
         }
 
         positionRepository.save(position);
+
+        positionEventRepository.save(PositionEvent.builder()
+                .userId(request.getUserId())
+                .instrumentId(request.getInstrumentId())
+                .instrumentType(position.getInstrumentType())
+                .side("SELL")
+                .quantity(request.getQuantity())
+                .price(null)
+                .build());
+    }
+
+    // ─── History ──────────────────────────────────────────────────────────────
+
+    public List<PositionEventResponse> getPositionEvents(UUID userId, String instrumentType) {
+        List<PositionEvent> events = (instrumentType != null && !instrumentType.isBlank())
+                ? positionEventRepository.findByUserIdAndInstrumentTypeOrderByExecutedAtAsc(userId, instrumentType.toUpperCase())
+                : positionEventRepository.findByUserIdOrderByExecutedAtAsc(userId);
+
+        return events.stream().map(this::toPositionEventResponse).collect(Collectors.toList());
     }
 
     // ─── Private helpers ──────────────────────────────────────────────────────
@@ -151,5 +182,18 @@ public class PortfolioService {
                 .quantity(position.getQuantity())
                 .averageCost(position.getAverageCost())
                 .build();
+    }
+
+    private PositionEventResponse toPositionEventResponse(PositionEvent event) {
+        return new PositionEventResponse(
+                event.getId(),
+                event.getUserId(),
+                event.getInstrumentId(),
+                event.getInstrumentType(),
+                event.getSide(),
+                event.getQuantity(),
+                event.getPrice(),
+                event.getExecutedAt()
+        );
     }
 }

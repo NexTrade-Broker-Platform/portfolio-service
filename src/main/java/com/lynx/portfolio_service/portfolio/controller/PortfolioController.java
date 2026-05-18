@@ -50,6 +50,17 @@ public class PortfolioController {
         return ResponseEntity.ok(portfolioService.getPosition(userId, instrumentId));
     }
 
+    // ─── History ─────────────────────────────────────────────────────────────
+
+    @GetMapping("/events")
+    public ResponseEntity<List<PositionEventResponse>> getPositionEvents(
+            @RequestHeader("X-Internal-Key") String key,
+            @RequestHeader("X-User-Id") UUID userId,
+            @RequestParam(required = false) String instrumentType) {
+        validateKey(key);
+        return ResponseEntity.ok(portfolioService.getPositionEvents(userId, instrumentType));
+    }
+
     // ─── Internal endpoints (called by Order Service) ─────────────────────────
 
     @PostMapping("/add")
